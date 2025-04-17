@@ -12,8 +12,9 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",
-    "@phosphor-icons/react": "^2.0.13",
+    "@phosphor-icons/react": "^2.1.7",
     "axios": "^1.8.4",
+    "i": "^0.3.7",
     "immer": "^10.0.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

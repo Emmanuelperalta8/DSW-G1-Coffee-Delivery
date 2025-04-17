@@ -20,31 +20,32 @@ import {
   PaymentHeading,
   PaymentOptions,
 } from './styles'
-import { Tags } from '../../components/CoffeeCard/styles';
-import { QuantityInput } from '../../components/Form/QuantityInput';
-import { Radio } from '../../components/Form/Radio';
+import { Tags } from '../../components/CoffeeCard/styles'
+import { QuantityInput } from '../../components/Form/QuantityInput'
+import { Radio } from '../../components/Form/Radio'
 
 export interface Item {
   id: string
   quantity: number
 }
+
 export interface Order {
   id: number
   items: CoffeeInCart[]
 }
 
 interface CoffeeInCart {
-  id: string;
-  title: string;
-  description: string;
-  tags: string[];
-  price: number;
-  image: string;
-  quantity: number;
-  subTotal: number;
-} 
+  id: string
+  title: string
+  description: string
+  tags: string[]
+  price: number
+  image: string
+  quantity: number
+  subTotal: number
+}
 
-const DELIVERY_PRICE = 3.75;
+const DELIVERY_PRICE = 3.75
 
 export function Cart() {
   const [coffeesInCart, setCoffeesInCart] = useState<CoffeeInCart[]>([
@@ -78,144 +79,135 @@ export function Cart() {
       quantity: 3,
       subTotal: 49.50,
     }
-  ]);
+  ])
 
-  const amountTags: string[] = [];
-  
-  coffeesInCart.map(coffee => coffee.tags.map((tag) => {
+  const [paymentMethod, setPaymentMethod] = useState<'credit' | 'debit' | 'pix'>('pix')
+
+  const amountTags: string[] = []
+  coffeesInCart.map(coffee => coffee.tags.map(tag => {
     if (!amountTags.includes(tag)) {
-      amountTags.push(tag);
+      amountTags.push(tag)
     }
-  }));
-  
-  const totalItemsPrice = coffeesInCart.reduce((currencyValue, coffee) => {
-    return currencyValue + coffee.price * coffee.quantity
-  }, 0);
+  }))
+
+  const totalItemsPrice = coffeesInCart.reduce((acc, coffee) => {
+    return acc + coffee.price * coffee.quantity
+  }, 0)
+
+  const PAYMENT_FEES = {
+    credit: 3.85,
+    debit: 1.85,
+    pix: 0,
+  }
+
+  const paymentFeePercentage = PAYMENT_FEES[paymentMethod]
+  const paymentFee = (totalItemsPrice * paymentFeePercentage) / 100
+  const totalWithFee = totalItemsPrice + DELIVERY_PRICE * amountTags.length + paymentFee
 
   function handleItemIncrement(id: string) {
     setCoffeesInCart((prevState) =>
       prevState.map((coffee) => {
         if (coffee.id === id) {
-          const coffeeQuantity = coffee.quantity + 1
-          const subTotal = coffee.price * coffeeQuantity
-          return {
-            ...coffee,
-            quantity: coffeeQuantity,
-            subTotal,
-          }
+          const quantity = coffee.quantity + 1
+          const subTotal = coffee.price * quantity
+          return { ...coffee, quantity, subTotal }
         }
         return coffee
       }),
     )
-    
   }
 
-  function handleItemDecrement(itemId: string) {
+  function handleItemDecrement(id: string) {
     setCoffeesInCart((prevState) =>
       prevState.map((coffee) => {
-        if (coffee.id === itemId && coffee.quantity > 1) {
-          const coffeeQuantity = coffee.quantity - 1;
-          const subTotal = coffee.price * coffeeQuantity;
-          return {
-            ...coffee,
-            quantity: coffeeQuantity,
-            subTotal,
-          }
+        if (coffee.id === id && coffee.quantity > 1) {
+          const quantity = coffee.quantity - 1
+          const subTotal = coffee.price * quantity
+          return { ...coffee, quantity, subTotal }
         }
         return coffee
       }),
     )
   }
 
-  function handleItemRemove(itemId: string) {
+  function handleItemRemove(id: string) {
     setCoffeesInCart((prevState) =>
-      prevState.filter((coffee) => coffee.id !== itemId),
+      prevState.filter((coffee) => coffee.id !== id),
     )
   }
 
   return (
     <Container>
-      
-
       <InfoContainer>
-      <PaymentContainer>
-            <PaymentHeading>
-              <CurrencyDollar size={22} />
+        <PaymentContainer>
+          <PaymentHeading>
+            <CurrencyDollar size={22} />
+            <div>
+              <span>Pagamento</span>
+              <p>O pagamento é feito na entrega. Escolha a forma que deseja pagar</p>
+            </div>
+          </PaymentHeading>
 
-              <div>
-                <span>Pagamento</span>
+          <PaymentOptions>
+            <div>
+              <Radio
+                isSelected={paymentMethod === 'credit'}
+                onClick={() => setPaymentMethod('credit')}
+                value="credit"
+              >
+                <CreditCard size={16} />
+                <span>Cartão de crédito</span>
+              </Radio>
 
-                <p>
-                  O pagamento é feito na entrega. Escolha a forma que deseja
-                  pagar
-                </p>
-              </div>
-            </PaymentHeading>
+              <Radio
+                isSelected={paymentMethod === 'debit'}
+                onClick={() => setPaymentMethod('debit')}
+                value="debit"
+              >
+                <Bank size={16} />
+                <span>Cartão de débito</span>
+              </Radio>
 
-            <PaymentOptions>
-              <div>
-                <Radio
-                  isSelected={false}
-                  onClick={() => {}}
-                  value="credit"
-                >
-                  <CreditCard size={16} />
-                  <span>Cartão de crédito</span>
-                </Radio>
+              <Radio
+                isSelected={paymentMethod === 'pix'}
+                onClick={() => setPaymentMethod('pix')}
+                value="pix"
+              >
+                <Money size={16} />
+                <span>Pix ou Dinheiro</span>
+              </Radio>
+            </div>
 
-                <Radio
-                  isSelected={false}
-                  onClick={() => {}}
-                  value="debit"
-                >
-                  <Bank size={16} />
-                  <span>Cartão de débito</span>
-                </Radio>
-
-                <Radio
-                  isSelected={true}
-                  onClick={() => {}}
-                  value="cash"
-                >
-                  <Money size={16} />
-                  <span>Pix ou Dinheiro</span>
-                </Radio>
-              </div>
-
-              {false ? (
-                <PaymentErrorMessage role="alert">
-                  <span>Selecione uma forma de pagamento</span>
-                </PaymentErrorMessage>
-              ) : null}
-            </PaymentOptions>
-          </PaymentContainer>
+            {false && (
+              <PaymentErrorMessage role="alert">
+                <span>Selecione uma forma de pagamento</span>
+              </PaymentErrorMessage>
+            )}
+          </PaymentOptions>
+        </PaymentContainer>
       </InfoContainer>
 
       <InfoContainer>
         <h2>Cafés selecionados</h2>
-
         <CartTotal>
           {coffeesInCart.map((coffee) => (
             <Fragment key={coffee.id}>
               <Coffee>
                 <div>
                   <img src={coffee.image} alt={coffee.title} />
-
                   <div>
                     <span>{coffee.title}</span>
-                      <Tags>
-                        {coffee.tags.map((tag) => (
-                          <span key={tag}>{tag}</span>
-                        ))}
-                      </Tags>
-
+                    <Tags>
+                      {coffee.tags.map((tag) => (
+                        <span key={tag}>{tag}</span>
+                      ))}
+                    </Tags>
                     <CoffeeInfo>
                       <QuantityInput
                         quantity={coffee.quantity}
                         incrementQuantity={() => handleItemIncrement(coffee.id)}
                         decrementQuantity={() => handleItemDecrement(coffee.id)}
                       />
-
                       <button onClick={() => handleItemRemove(coffee.id)}>
                         <Trash />
                         <span>Remover</span>
@@ -223,10 +215,8 @@ export function Cart() {
                     </CoffeeInfo>
                   </div>
                 </div>
-
                 <aside>R$ {coffee.subTotal?.toFixed(2)}</aside>
               </Coffee>
-
               <span />
             </Fragment>
           ))}
@@ -236,8 +226,8 @@ export function Cart() {
               <span>Total de itens</span>
               <span>
                 {new Intl.NumberFormat('pt-br', {
-                  currency: 'BRL',
                   style: 'currency',
+                  currency: 'BRL',
                 }).format(totalItemsPrice)}
               </span>
             </div>
@@ -246,9 +236,19 @@ export function Cart() {
               <span>Entrega</span>
               <span>
                 {new Intl.NumberFormat('pt-br', {
-                  currency: 'BRL',
                   style: 'currency',
-                }).format(DELIVERY_PRICE)}
+                  currency: 'BRL',
+                }).format(DELIVERY_PRICE * amountTags.length)}
+              </span>
+            </div>
+
+            <div>
+              <span>Taxa de pagamento</span>
+              <span>
+                {new Intl.NumberFormat('pt-br', {
+                  style: 'currency',
+                  currency: 'BRL',
+                }).format(paymentFee)}
               </span>
             </div>
 
@@ -256,9 +256,9 @@ export function Cart() {
               <span>Total</span>
               <span>
                 {new Intl.NumberFormat('pt-br', {
-                  currency: 'BRL',
                   style: 'currency',
-                }).format(totalItemsPrice + (DELIVERY_PRICE * amountTags.length))}
+                  currency: 'BRL',
+                }).format(totalWithFee)}
               </span>
             </div>
           </CartTotalInfo>
@@ -268,7 +268,6 @@ export function Cart() {
           </CheckoutButton>
         </CartTotal>
       </InfoContainer>
-      {/* <Success /> */}
     </Container>
   )
 }

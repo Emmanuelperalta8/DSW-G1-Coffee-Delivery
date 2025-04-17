@@ -1,82 +1,93 @@
 import { Coffee, Package, ShoppingCart, Timer } from '@phosphor-icons/react'
 import { useTheme } from 'styled-components'
 
-import { CoffeeCard } from '../../components/CoffeeCard'
 
+import { CoffeeCard } from '../../components/CoffeeCard'
 import { CoffeeList, Heading, Hero, HeroContent, Info, Navbar } from './styles'
 import { useEffect, useState } from 'react';
 import { Radio } from '../../components/Form/Radio';
 import { api } from '../../serves/api';
+import axios from "axios";
+
+
+
+
+
 
 interface Coffee {
-  id: string;
-  title: string;
-  description: string;
-  tags: string[];
-  price: number;
-  image: string;
-  quantity: number;
-  favorite: boolean;
-};
+  id: string
+  title: string
+  description: string
+  tags: string[]
+  price: number
+  image: string
+  quantity: number
+  favorite: boolean
+}
 
 export function Home() {
-  const theme = useTheme();
-  const [coffees, setCoffees] = useState<Coffee[]>([]);
+  const theme = useTheme()
+  const [coffees, setCoffees] = useState<Coffee[]>([])
+  const [loading, setLoading] = useState(true)
+  const [selectedTag, setSelectedTag] = useState<string | null>(null)
 
   useEffect(() => {
-    async function fetchCoffees() {
-      const response = await api('/coffees');
-      setCoffees(response.data);
+    axios
+      .get('http://localhost:3000/coffees')
+      .then((response) => {
+        setCoffees(response.data)
+      })
+      .catch((error) => {
+        console.error('Erro na lista de cafés!', error)
+      })
+      .finally(() => {
+        setLoading(false)
+      })
+  }, [])
 
-      console.log({coffees: response.data});
-    }
-    fetchCoffees();
-  }, []);
 
 
-  
+
+
   function incrementQuantity(id: string) {
     setCoffees((prevState) =>
-      prevState.map((coffee) => {
-        if (coffee.id === id) {
-          return {
-            ...coffee,
-            quantity: coffee.quantity + 1,
-          }
-        }
-        return coffee
-      }
+      prevState.map((coffee) =>
+        coffee.id === id
+          ? { ...coffee, quantity: coffee.quantity + 1 }
+          : coffee,
       ),
-    );
+    )
   }
 
   function decrementQuantity(id: string) {
     setCoffees((prevState) =>
-      prevState.map((coffee) => {
-        if (coffee.id === id && coffee.quantity > 0) {
-          return {
-            ...coffee,
-            quantity: coffee.quantity - 1,
-          }
-        }
-        return coffee
-      }),
-    );
+      prevState.map((coffee) =>
+        coffee.id === id && coffee.quantity > 0
+          ? { ...coffee, quantity: coffee.quantity - 1 }
+          : coffee,
+      ),
+    )
   }
 
   function handleFavoriteCoffee(id: string) {
     setCoffees((prevState) =>
-      prevState.map((coffee) => {
-        if (coffee.id === id) {
-          return {
-            ...coffee,
-            favorite: !coffee.favorite,
-          }
-        }
-        return coffee
-      }),
+      prevState.map((coffee) =>
+        coffee.id === id
+          ? { ...coffee, favorite: !coffee.favorite }
+          : coffee,
+      ),
     )
-    
+  }
+
+  const filteredCoffees = selectedTag
+    ? coffees.filter((coffee) => coffee.tags.includes(selectedTag))
+    : coffees
+
+ 
+  function handleTagSelection(tag: string) {
+    setSelectedTag((prevSelectedTag) =>
+      prevSelectedTag === tag ? null : tag,
+    )
   }
 
   return (
@@ -86,7 +97,6 @@ export function Home() {
           <div>
             <Heading>
               <h1>Encontre o café perfeito para qualquer hora do dia</h1>
-
               <span>
                 Com o Coffee Delivery você recebe seu café onde estiver, a
                 qualquer hora
@@ -143,35 +153,33 @@ export function Home() {
       </Hero>
 
       <CoffeeList>
-
         <h2>Nossos cafés</h2>
         <Navbar>
           <Radio
-            onClick={() => {}}
-            isSelected={false}
+            onClick={() => handleTagSelection('tradicional')}
+            isSelected={selectedTag === 'tradicional'}
             value="tradicional"
           >
             <span>Tradicional</span>
           </Radio>
           <Radio
-            onClick={() => {}}
-            isSelected={false}
+            onClick={() => handleTagSelection('gelado')}
+            isSelected={selectedTag === 'gelado'}
             value="gelado"
           >
             <span>Gelado</span>
           </Radio>
           <Radio
-            onClick={() => {}}
-            isSelected={false}
+            onClick={() => handleTagSelection('com leite')}
+            isSelected={selectedTag === 'com leite'}
             value="com leite"
           >
             <span>Com leite</span>
           </Radio>
         </Navbar>
 
-
         <div>
-          {coffees.map((coffee) => (
+          {filteredCoffees.map((coffee) => (
             <CoffeeCard
               key={coffee.id}
               coffee={coffee}
